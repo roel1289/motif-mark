@@ -1,10 +1,23 @@
 #!/usr/bin/env python
 
+####################
+## Future Imports ##
+####################
+
+from __future__ import annotations
+
+#############
+## Imports ##
+#############
+
 import argparse
 import re
 import cairo
 import math
 
+###############
+## Arguments ##
+###############
 
 def get_args():
     parser = argparse.ArgumentParser(description="A program to hold input + output file name")
@@ -16,9 +29,13 @@ def get_args():
     
 args = get_args()
 f = args.fasta
+
+
+
 ############################ example of line and rectangle #########################################
 #### drawign a line and rectangle
-width, height = 256, 256
+#width, height = 256, 256
+width, height = 1000, 1000
 
 #create the coordinates to display your graphic, desginate output
 surface = cairo.PDFSurface("example.pdf",width, height)
@@ -46,49 +63,15 @@ surface.finish()
 ########################################################################
 
 
+#############
+## Globals ##
+#############
 
-### assinging classes and objects
-# create class Motif
-class Motif: 
-    def __init__(self, motif_seq, gene, start, length, color) -> str:
-    #methods
-        self.motif_seq = motif_seq
-        self.gene = gene
-        self.start = start
-        self.length = length
-        self.color = color
+motifDict = dict()
 
-    def __str__(self) -> str:
-        return f"{self.gene}, {self.start}, {self.length}, {self.color}"
-    
-
-#m1 = Motif("INSR", 100, 10, "red" )
-#print(m1)
-
-
-
-# motif_ygcy = Motif("ygcy")
-# motif_GCAUG = Motif("GCAUG")
-# motif_catag = Motif("catag")
-# motif_YYYYYYYYYY = Motif("YYYYYYYYYY")
-
-
-class Exon:
-    def __init__(self, start, end, direction, color) -> str:
-        pass
-
-
-class Intron:
-    def __init__(self) -> str:
-        pass
-
-
-class Gene:
-    def __init__(self, name ) -> None:
-        pass
-    def counter(self, name):
-        pass
-
+###############
+## Functions ##
+###############
 
 def oneline_fasta(f):
     '''Turn seq of fasta file into one line.'''
@@ -110,17 +93,109 @@ def oneline_fasta(f):
 oneline_fasta(f)
 
 
+#############
+## Classes ##
+#############
+# This is where I define my classes (yes, including both attributes and methods).
+
+class Motif: 
+    def __init__(self, motif_seq, gene, start, length, color) -> str:
+    #attributes:
+        self.motif_seq = motif_seq
+        self.gene = gene
+        self.start = start
+        self.length = length
+        self.color = color
+
+    def __str__(self) -> str:
+        return f"{self.gene}, {self.start}, {self.length}, {self.color}"
+    
+    #methods:
+    #def draw(self):
+
+
+
+
+#m1 = Motif("INSR", 100, 10, "red" )
+#print(m1)
+
+
+
+# motif_ygcy = Motif("ygcy")
+# motif_GCAUG = Motif("GCAUG")
+# motif_catag = Motif("catag")
+# motif_YYYYYYYYYY = Motif("YYYYYYYYYY")
+
+
+class Exon:
+    def __init__(self, start, end, color, gene) -> str:
+        self.start = start
+        self.end = end
+        self.color = color
+
+
+class Gene:
+    def __init__(self, name, length ) -> None:
+        self.name = name
+        self.length = length
+
+    #methods
+    def draw_gene(self, x, y, name, gene_length):
+        surface = cairo.PDFSurface("example2.pdf",width, height)
+        context = cairo.Context(surface)
+        context.set_line_width(1)
+        context.move_to(x,y)        #(x,y)
+        context.line_to(x + gene_length,y)
+        context.move_to(20, 40) 
+        context.show_text(name)
+        context.stroke()
+        context.fill()
+
+
+        
+    #instances:
+gene1 = Gene("INSR", 548)
+gene1.draw_gene(100,200,"test", 100)
+
+    
+    # def counter(self, name):
+    #     pass
+
+
+##########
+## Main ##
+##########
+# The "main" section. Basically, what gets run goes here (and obviously uses
+# directly or indirectly everything above it).
+    
+
 
 with open(args.oneLine, "r") as input_fasta:
+    i=0
     while True:
-        line = input_fasta.readline().strip()
-        if(line == ""):
+        
+        header = input_fasta.readline().split()
+        sequence = input_fasta.readline().split()
+
+        if(header == []):
             break
-        match_gene_len = re.findall(r'^>.+?\n([agtcyAGTCY0-9]+)', line) #^>.+?\n([agtcyAGTCY0-9]+)  #^>.+([\s\S]+)
-        print(match_gene_len)
+
+        print(header)
+        # print(sequence)
+
+        gene_len = len(sequence[0])
+        gene2 = Gene(header[0][1:], gene_len)
+        gene2.draw_gene(20,50, header[0][1:],gene_len)
+        
+        print(gene_len)
 
 
 
+
+        # match_gene_len = re.findall(r'^>.+?\n([agtcyAGTCY0-9]+)', line) #^>.+?\n([agtcyAGTCY0-9]+)  #^>.+([\s\S]+)
+        # print(match_gene_len)
+
+#NOTES: make a class of gene in the main part, and then use the draw_gene function to draw the gene
 
 
 
@@ -161,3 +236,4 @@ motifDict = dict()
         
 
 
+# ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt -w test.fa -ol test.fa
