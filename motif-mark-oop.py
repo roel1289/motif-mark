@@ -38,7 +38,7 @@ f = args.fasta
 width, height = 1000, 1000
 
 #create the coordinates to display your graphic, desginate output
-surface = cairo.PDFSurface("example.pdf",width, height)
+surface = cairo.PDFSurface("example.pdf", width, height)
 
 #create the coordinates you will be drawing on (like a transparency) - you can create a transformation matrix
 context = cairo.Context(surface)
@@ -68,6 +68,10 @@ surface.finish()
 #############
 
 motifDict = dict()
+
+#image dimensions:
+width, height = 1000, 1000
+
 
 ###############
 ## Functions ##
@@ -132,6 +136,17 @@ class Exon:
         self.start = start
         self.end = end
         self.color = color
+        self.gene = gene
+
+    #methods
+    def draw_exon(self, x, y):
+        surface = cairo.PDFSurface("example2.pdf", width, height)
+        exon = cairo.Context(surface)
+        
+        #draw a rectangle
+        exon.rectangle(x,y,150,350)        #(x0,y0,x1,y1)
+        exon.show_text("test")
+       # exon.fill()
 
 
 class Gene:
@@ -141,15 +156,16 @@ class Gene:
 
     #methods
     def draw_gene(self, x, y, name, gene_length):
-        surface = cairo.PDFSurface("example2.pdf",width, height)
+        surface = cairo.PDFSurface("example2.pdf", width, height)
         context = cairo.Context(surface)
         context.set_line_width(1)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + gene_length,y)
-        context.move_to(20, 40) 
+        context.move_to(x, y-10) 
         context.show_text(name)
         context.stroke()
         context.fill()
+        surface.finish()
 
 
         
@@ -171,38 +187,48 @@ gene1.draw_gene(100,200,"test", 100)
 
 
 with open(args.oneLine, "r") as input_fasta:
+    # genes
     i=0
+    exon_counter = 0
     while True:
         
         header = input_fasta.readline().split()
-        sequence = input_fasta.readline().split()
+        sequence = str(input_fasta.readline().split())
 
         if(header == []):
             break
 
-        print(header)
-        # print(sequence)
+        # print(header)
+        print(sequence)
+        print(type(sequence))
+
+        gene_name = header[0][1:]
+        print(gene_name)
 
         gene_len = len(sequence[0])
         gene2 = Gene(header[0][1:], gene_len)
-        gene2.draw_gene(20,50, header[0][1:],gene_len)
+        gene2.draw_gene(20, 50+i, header[0][1:], gene_len)
         
         print(gene_len)
 
+        i += 100
+        print(f'i={i}')
+
+        # exons
+        
+        for bp in sequence:
+            if bp.isupper() == True:
+                exon_counter += 1
+        exon_len = exon_counter
+        print(exon_len)
+
+        exon1 = Exon(0, exon_len, "red", gene_name)
+        exon1.draw_exon(100, 100)#, "red", gene_name)
 
 
 
         # match_gene_len = re.findall(r'^>.+?\n([agtcyAGTCY0-9]+)', line) #^>.+?\n([agtcyAGTCY0-9]+)  #^>.+([\s\S]+)
         # print(match_gene_len)
-
-#NOTES: make a class of gene in the main part, and then use the draw_gene function to draw the gene
-
-
-
-
-
-
-
 
 
 
