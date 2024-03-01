@@ -166,7 +166,7 @@ class Exon:
     #methods
     def draw_exon(self, x: int, y: int, exon_len: int):
         '''This behavior draws the exon.'''
-        context.set_line_width(15)
+        context.set_line_width(17)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + exon_len, y)
         context.stroke()
@@ -225,21 +225,22 @@ with open(args.oneLine, "r") as input_fasta:
 
 
         ### exons ###
+        #extracting only capital letters (exons)
+        p = re.compile("[A-Z]+")
+        for m in p.finditer(sequence[0]):
+            print(m.span())
+            exon_x = m.span()[0]
+            exon_y = m.span()[1]
         
-        match_exon = re.search(r'([A-Z])', sequence[0])
-        print(f'{match_exon.span()=}')
+        
+        exon_len = exon_y - exon_x #exon len = end - start
+        print(exon_len)
+        
 
-
-
-        for bp in sequence:
-            if bp.isupper() == True:
-                exon_counter += 1
-        exon_len = exon_counter
-        #print(exon_len)
 
         exon1 = Exon(0, exon_len, "red", gene_name)
         # x: int, y: int, exon_len: int
-        exon1.draw_exon(100, 50+i, 20)
+        exon1.draw_exon(exon_x, 50+i, exon_len)
 
 
         i += 100
