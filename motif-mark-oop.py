@@ -71,6 +71,9 @@ motifDict = dict()
 
 #image dimensions:
 width, height = 1000, 1000
+#setting up pycairo image dimensions:
+surface = cairo.PDFSurface("example2.pdf", width, height)
+context = cairo.Context(surface)
 
 
 ###############
@@ -131,6 +134,28 @@ class Motif:
 # motif_YYYYYYYYYY = Motif("YYYYYYYYYY")
 
 
+
+
+######## class gene ##########
+class Gene:
+    def __init__(self, name: str, length: int ) -> None:
+        self.name = name
+        self.length = length
+
+    #methods
+    def draw_gene(self, x: int, y: int, name: str, gene_length: int):
+        context.set_line_width(3)
+        print(f'debug 123 {x=}, {y=}, {x+gene_length=}')
+        context.move_to(x,y)        #(x,y)
+        context.line_to(x + gene_length,y)
+        context.stroke()
+
+        #print gene name
+        context.move_to(x, y-10) 
+        context.show_text(name)
+        context.stroke()
+
+########## class exon ################
 class Exon:
     def __init__(self, start, end, color, gene) -> str:
         self.start = start
@@ -139,39 +164,17 @@ class Exon:
         self.gene = gene
 
     #methods
-    def draw_exon(self, x, y):
-        surface = cairo.PDFSurface("example2.pdf", width, height)
-        exon = cairo.Context(surface)
-        
-        #draw a rectangle
-        exon.rectangle(x,y,150,350)        #(x0,y0,x1,y1)
-        exon.show_text("test")
-       # exon.fill()
-
-
-class Gene:
-    def __init__(self, name, length ) -> None:
-        self.name = name
-        self.length = length
-
-    #methods
-    def draw_gene(self, x, y, name, gene_length):
-        surface = cairo.PDFSurface("example2.pdf", width, height)
-        context = cairo.Context(surface)
-        context.set_line_width(1)
+    def draw_exon(self, x: int, y: int, exon_len: int):
+        '''This behavior draws the exon.'''
+        context.set_line_width(15)
         context.move_to(x,y)        #(x,y)
-        context.line_to(x + gene_length,y)
-        context.move_to(x, y-10) 
-        context.show_text(name)
+        context.line_to(x + exon_len, y)
         context.stroke()
-        context.fill()
-        surface.finish()
-
 
         
-    #instances:
-gene1 = Gene("INSR", 548)
-gene1.draw_gene(100,200,"test", 100)
+    #instances
+# gene1 = Gene("INSR", 548)
+# gene1.draw_gene(100,200,"test", 100)
 
     
     # def counter(self, name):
@@ -186,21 +189,26 @@ gene1.draw_gene(100,200,"test", 100)
     
 
 
+def build_genes(oneline_fasta_filename: str) -> list[Gene]:
+    pass 
+
+#setting up surface:
+
 with open(args.oneLine, "r") as input_fasta:
-    # genes
+    ### genes ###
     i=0
     exon_counter = 0
     while True:
         
         header = input_fasta.readline().split()
-        sequence = str(input_fasta.readline().split())
+        sequence = input_fasta.readline().split()
 
         if(header == []):
             break
 
         # print(header)
-        print(sequence)
-        print(type(sequence))
+        #print(header[0])
+        #print(type(sequence))
 
         gene_name = header[0][1:]
         print(gene_name)
@@ -209,21 +217,33 @@ with open(args.oneLine, "r") as input_fasta:
         gene2 = Gene(header[0][1:], gene_len)
         gene2.draw_gene(20, 50+i, header[0][1:], gene_len)
         
-        print(gene_len)
+        print(f'{gene_len=}')
 
-        i += 100
-        print(f'i={i}')
-
-        # exons
         
+
+   
+
+
+        ### exons ###
+        
+        match_exon = re.search(r'([A-Z])', sequence[0])
+        print(f'{match_exon.span()=}')
+
+
+
         for bp in sequence:
             if bp.isupper() == True:
                 exon_counter += 1
         exon_len = exon_counter
-        print(exon_len)
+        #print(exon_len)
 
         exon1 = Exon(0, exon_len, "red", gene_name)
-        exon1.draw_exon(100, 100)#, "red", gene_name)
+        # x: int, y: int, exon_len: int
+        exon1.draw_exon(100, 50+i, 20)
+
+
+        i += 100
+        print(f'i={i}')
 
 
 
@@ -231,7 +251,8 @@ with open(args.oneLine, "r") as input_fasta:
         # print(match_gene_len)
 
 
-
+context.fill()
+surface.finish()
 
 
 #####making motif dictionary where key = motif, and value and color
