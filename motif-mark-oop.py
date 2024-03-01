@@ -105,37 +105,6 @@ oneline_fasta(f)
 #############
 # This is where I define my classes (yes, including both attributes and methods).
 
-class Motif: 
-    def __init__(self, motif_seq, gene, start, length, color) -> str:
-    #attributes:
-        self.motif_seq = motif_seq
-        self.gene = gene
-        self.start = start
-        self.length = length
-        self.color = color
-
-    def __str__(self) -> str:
-        return f"{self.gene}, {self.start}, {self.length}, {self.color}"
-    
-    #methods:
-    #def draw(self):
-
-
-
-
-#m1 = Motif("INSR", 100, 10, "red" )
-#print(m1)
-
-
-
-# motif_ygcy = Motif("ygcy")
-# motif_GCAUG = Motif("GCAUG")
-# motif_catag = Motif("catag")
-# motif_YYYYYYYYYY = Motif("YYYYYYYYYY")
-
-
-
-
 ######## class gene ##########
 class Gene:
     def __init__(self, name: str, length: int ) -> None:
@@ -146,6 +115,7 @@ class Gene:
     def draw_gene(self, x: int, y: int, name: str, gene_length: int):
         context.set_line_width(3)
         print(f'debug 123 {x=}, {y=}, {x+gene_length=}')
+        context.set_source_rgba(0, 0, 0, 1)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + gene_length,y)
         context.stroke()
@@ -166,7 +136,8 @@ class Exon:
     #methods
     def draw_exon(self, x: int, y: int, exon_len: int):
         '''This behavior draws the exon.'''
-        context.set_line_width(17)
+        context.set_source_rgba(0, 0, 0, 1)
+        context.set_line_width(22)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + exon_len, y)
         context.stroke()
@@ -180,6 +151,46 @@ class Exon:
     # def counter(self, name):
     #     pass
 
+############### class motif ##############
+
+class Motif: 
+    def __init__(self, motif_seq, gene, start, length, color) -> str:
+    #attributes:
+        self.motif_seq = motif_seq
+        self.gene = gene
+        self.start = start
+        self.length = length
+        self.color = color
+
+    def __str__(self) -> str:
+        return f"{self.gene}, {self.start}, {self.length}, {self.color}"
+    
+    #methods:
+    def draw_motif(self, x: int, y: int, motif_len: int):
+        '''draw the motif'''
+        
+        context.set_source_rgba(4, 0, 4, 0.5) # setting color of the context(pink rn)
+        context.set_line_width(17)
+        context.move_to(x,y)        #(x,y)
+        context.line_to(x + exon_len, y)
+        context.stroke()
+
+
+
+
+
+#m1 = Motif("INSR", 100, 10, "red" )
+#print(m1)
+
+
+
+# motif_ygcy = Motif("ygcy")
+# motif_GCAUG = Motif("GCAUG")
+# motif_catag = Motif("catag")
+# motif_YYYYYYYYYY = Motif("YYYYYYYYYY")
+
+
+
 
 ##########
 ## Main ##
@@ -188,11 +199,31 @@ class Exon:
 # directly or indirectly everything above it).
     
 
-
+#maybe will make a function that takes a oneline fasta and gives a list of genes:
 def build_genes(oneline_fasta_filename: str) -> list[Gene]:
     pass 
 
-#setting up surface:
+#getting the motifs:
+with open(args.motifs, "r") as input_motifs:
+    while True:
+        line = input_motifs.readline().strip()
+        if(line == ""):
+            break
+        print(f'--->motifs:{line}')
+        # match_gene_name = re.findall(r'>([A-Za-z0-9]+)', line)
+        # match_motif = re.search(r'(([c|t]gc[c|t])', line)
+
+
+
+        motifDict[line] = (len(line),len(line),0,1)
+
+    print(motifDict)
+        
+
+
+
+
+
 
 with open(args.oneLine, "r") as input_fasta:
     ### genes ###
@@ -219,16 +250,12 @@ with open(args.oneLine, "r") as input_fasta:
         
         print(f'{gene_len=}')
 
-        
-
-   
-
 
         ### exons ###
         #extracting only capital letters (exons)
         p = re.compile("[A-Z]+")
         for m in p.finditer(sequence[0]):
-            print(m.span())
+            #print(m.span())
             exon_x = m.span()[0]
             exon_y = m.span()[1]
         
@@ -243,9 +270,27 @@ with open(args.oneLine, "r") as input_fasta:
         exon1.draw_exon(exon_x, 50+i, exon_len)
 
 
+        
+
+        ### motifs ###
+        #ygcy
+        ygcy = re.compile("([c|t]gc[c|t])")
+        for m in ygcy.finditer(sequence[0]):
+            print(m.span())
+            
+            for value in m.span():
+                print(value)
+                motif_len = m.span()[1] - m.span()[0]
+                print(f'the motiflen --> {motif_len=}')
+                value = Motif("ygcy", "gene", 1, 2, "red") #motif_seq, gene, start, length, color
+                value.draw_motif(m.span()[0], 50+i, motif_len)
+
+                #self, x: int, y: int, motif_len: int, color: str
+
+
+
         i += 100
         print(f'i={i}')
-
 
 
         # match_gene_len = re.findall(r'^>.+?\n([agtcyAGTCY0-9]+)', line) #^>.+?\n([agtcyAGTCY0-9]+)  #^>.+([\s\S]+)
@@ -267,21 +312,6 @@ surface.finish()
 
 motifDict = dict()
 
-# with open(args.motifs, "r") as input_motifs:
-#     while True:
-#         line = input_motifs.readline().strip()
-#         if(line == ""):
-#             break
-        
-#         match_gene_name = re.findall(r'>([A-Za-z0-9]+)', line)
-#         match_motif = re.search(r'(([c|t]gc[c|t])', line)
-
-
-
-#         motifDict[line] = len(line)
-
-#     print(motifDict)
-        
 
 
 # ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt -w test.fa -ol test.fa
