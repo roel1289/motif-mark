@@ -75,6 +75,9 @@ width, height = 1000, 1000
 surface = cairo.PDFSurface("example2.pdf", width, height)
 context = cairo.Context(surface)
 
+#counter to increment the different RGBA colors: 
+color_counter = 0
+
 
 ###############
 ## Functions ##
@@ -136,20 +139,12 @@ class Exon:
     #methods
     def draw_exon(self, x: int, y: int, exon_len: int):
         '''This behavior draws the exon.'''
+        print(f'debug EXON: {x=}, {y=}, {x+exon_len=}')
         context.set_source_rgba(0, 0, 0, 1)
-        context.set_line_width(22)
+        context.set_line_width(30)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + exon_len, y)
         context.stroke()
-
-        
-    #instances
-# gene1 = Gene("INSR", 548)
-# gene1.draw_gene(100,200,"test", 100)
-
-    
-    # def counter(self, name):
-    #     pass
 
 ############### class motif ##############
 
@@ -168,12 +163,48 @@ class Motif:
     #methods:
     def draw_motif(self, x: int, y: int, motif_len: int):
         '''draw the motif'''
-        
-        context.set_source_rgba(4, 0, 4, 0.5) # setting color of the context(pink rn)
+        if self.motif_seq == "ygcy":
+            # print("graphing ygcy")
+            context.set_source_rgba(200/255, 0, 0, 0.5) # setting color of the context(red rn)
+            #add name into legend
+            context.move_to(20, 450) 
+            context.show_text("ygcy")
+            context.stroke()
+        if self.motif_seq == "YYYYYYYYYY":
+            # print("graphing YYYYYYYYYY")
+            context.set_source_rgba(0, 0, 200/255, 0.5) # red
+            #add name into legend
+            context.move_to(20, 465) 
+            context.show_text("YYYYYYYYYY")
+            context.stroke()
+        if self.motif_seq == "GCAUG":
+            print("graphing GCAUG")
+            context.set_source_rgba(0, 200/255, 5/255, 0.5)
+            #add name into legend
+            context.move_to(20, 480) 
+            context.show_text("GCAUG")
+            context.stroke()
+        if self.motif_seq == "catag":
+            # print("graphing catag")
+            context.set_source_rgba(150/255, 150/255, 0, 0.5) #orange
+            #add name into legend
+            context.move_to(20, 495) 
+            context.show_text("catag")
+            context.stroke()
         context.set_line_width(17)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + exon_len, y)
         context.stroke()
+
+    # def draw_legend(self, x: int, y: int):
+    #     '''Draw the motif legend, including the colors'''
+    #     if self.motif_seq == "ygcy":
+    #         # print("graphing ygcy")
+    #         context.set_source_rgba(200/255, 0, 0, 0.5) # setting color of the context(red rn)
+    #         #add name into legend
+    #         context.move_to(20, 450) 
+    #         context.show_text("ygcy")
+    #         context.stroke()
 
 
 
@@ -239,10 +270,10 @@ with open(args.oneLine, "r") as input_fasta:
 
         # print(header)
         #print(header[0])
-        #print(type(sequence))
+        print(sequence)
 
         gene_name = header[0][1:]
-        print(gene_name)
+        print(f'-------------->{gene_name=}')
 
         gene_len = len(sequence[0])
         gene2 = Gene(header[0][1:], gene_len)
@@ -259,42 +290,69 @@ with open(args.oneLine, "r") as input_fasta:
             exon_x = m.span()[0]
             exon_y = m.span()[1]
         
-        
+        print(exon_x)
+        print(exon_y)
+
+
         exon_len = exon_y - exon_x #exon len = end - start
-        print(exon_len)
+        print(f'{exon_len=}')
         
 
 
         exon1 = Exon(0, exon_len, "red", gene_name)
         # x: int, y: int, exon_len: int
-        exon1.draw_exon(exon_x, 50+i, exon_len)
+        exon1.draw_exon(20+exon_x, 50+i, exon_len)
 
 
         
 
         ### motifs ###
-        #ygcy
+        # ygcy
         ygcy = re.compile("([c|t]gc[c|t])")
         for m in ygcy.finditer(sequence[0]):
-            print(m.span())
+            #print(m.span())
             
             for value in m.span():
-                print(value)
+                #print(value)
                 motif_len = m.span()[1] - m.span()[0]
-                print(f'the motiflen --> {motif_len=}')
+                # print(f'the motiflen --> {motif_len=}')
                 value = Motif("ygcy", "gene", 1, 2, "red") #motif_seq, gene, start, length, color
-                value.draw_motif(m.span()[0], 50+i, motif_len)
+                value.draw_motif(20+m.span()[0], 50+i, motif_len)
 
                 #self, x: int, y: int, motif_len: int, color: str
 
+        #GCAUG
+        GCAUG = re.compile("GCATG") #bc it's in dna we use "T" instead of "U"
+        for m in GCAUG.finditer(sequence[0]):
+            print(m.span())
+            motif_len = m.span()[1] - m.span()[0]
+            print(f'the motiflen --> {motif_len=}')
+            motif2 = Motif("GCAUG", "gene", 1,2,"blue")
+            motif2.draw_motif(20 + m.span()[0], 50+i, motif_len)
 
+        # #catag
+        catag = re.compile("catag")
+        for m in catag.finditer(sequence[0]):
+            print(m.span())
+            motif_len = m.span()[1] - m.span()[0]
+            motif3 = Motif("catag", "gene", 1,2,"orange")
+            motif3.draw_motif(20 + m.span()[0], 50+i, motif_len)
+        
+
+        #YYYYYYYYYY
+        YYYYYYYYYY = re.compile("[c|t][c|t][c|t][c|t][c|t][c|t][c|t][c|t][c|t][c|t]")
+        for m in YYYYYYYYYY.finditer(sequence[0]):
+            print(m.span())
+            motif_len = m.span()[1] - m.span()[0]
+            motif4 = Motif("YYYYYYYYYY", "gene", 1,2,"green")
+            motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
+
+
+        ### create legend ###
 
         i += 100
         print(f'i={i}')
 
-
-        # match_gene_len = re.findall(r'^>.+?\n([agtcyAGTCY0-9]+)', line) #^>.+?\n([agtcyAGTCY0-9]+)  #^>.+([\s\S]+)
-        # print(match_gene_len)
 
 
 context.fill()
