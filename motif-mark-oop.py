@@ -30,39 +30,6 @@ def get_args():
 args = get_args()
 f = args.fasta
 
-
-
-############################ example of line and rectangle #########################################
-#### drawign a line and rectangle
-#width, height = 256, 256
-width, height = 1000, 1000
-
-#create the coordinates to display your graphic, desginate output
-surface = cairo.PDFSurface("example.pdf", width, height)
-
-#create the coordinates you will be drawing on (like a transparency) - you can create a transformation matrix
-context = cairo.Context(surface)
-
-#Need to tell cairo where to put the brush, the color and width, and the shape you want it to draw
-#draw a line
-context.set_line_width(1)
-context.move_to(50,25)        #(x,y)
-context.line_to(450,25)
-context.stroke()
-
-#set color
-context.set_source_rgb(0.4, 0.9, 0.4)
-
-#draw a rectangle
-context.rectangle(100,100,150,350)        #(x0,y0,x1,y1)
-context.fill()
-
-#write out drawing
-surface.finish()
-
-########################################################################
-
-
 #############
 ## Globals ##
 #############
@@ -72,7 +39,7 @@ motifDict = dict()
 #image dimensions:
 width, height = 1000, 1000
 #setting up pycairo image dimensions:
-surface = cairo.PDFSurface("example2.pdf", width, height)
+surface = cairo.PDFSurface("Figure_1.pdf", width, height)
 context = cairo.Context(surface)
 
 #counter to increment the different RGBA colors: 
@@ -100,7 +67,7 @@ def oneline_fasta(f):
                 seq += line 
         wf.write(seq)
 
-oneline_fasta(f)
+# oneline_fasta(f)
 
 
 #############
@@ -165,36 +132,44 @@ class Motif:
         '''draw the motif'''
         if self.motif_seq == "ygcy":
             # print("graphing ygcy")
-            context.set_source_rgba(200/255, 0, 0, 0.5) # setting color of the context(red rn)
+            context.set_source_rgba(200/255, 0, 0, .7) # setting color of the context(red rn)
             #add name into legend
             context.move_to(20, 450) 
             context.show_text("ygcy")
             context.stroke()
         if self.motif_seq == "YYYYYYYYYY":
             # print("graphing YYYYYYYYYY")
-            context.set_source_rgba(0, 0, 200/255, 0.5) # red
+            context.set_source_rgba(0, 0, 200/255, .7) # red
             #add name into legend
             context.move_to(20, 465) 
             context.show_text("YYYYYYYYYY")
             context.stroke()
         if self.motif_seq == "GCAUG":
             print("graphing GCAUG")
-            context.set_source_rgba(0, 200/255, 5/255, 0.5)
+            context.set_source_rgba(0, 200/255, 5/255, .7)
             #add name into legend
             context.move_to(20, 480) 
             context.show_text("GCAUG")
             context.stroke()
         if self.motif_seq == "catag":
             # print("graphing catag")
-            context.set_source_rgba(150/255, 150/255, 0, 0.5) #orange
+            context.set_source_rgba(150/255, 150/255, 0, .7) #orange
             #add name into legend
             context.move_to(20, 495) 
             context.show_text("catag")
             context.stroke()
         context.set_line_width(17)
         context.move_to(x,y)        #(x,y)
-        context.line_to(x + exon_len, y)
+        context.line_to(x + motif_len, y)
         context.stroke()
+
+        #making key
+        context.set_source_rgba(0, 0, 0, 1)
+        context.move_to(20, 435) 
+        context.show_text("Key")
+        context.stroke()
+
+
 
     # def draw_legend(self, x: int, y: int):
     #     '''Draw the motif legend, including the colors'''
@@ -254,7 +229,8 @@ with open(args.motifs, "r") as input_motifs:
 
 
 
-
+# Turning fasta file so that it only has one line of
+oneline_fasta(f)
 
 with open(args.oneLine, "r") as input_fasta:
     ### genes ###
@@ -318,15 +294,16 @@ with open(args.oneLine, "r") as input_fasta:
                 # print(f'the motiflen --> {motif_len=}')
                 value = Motif("ygcy", "gene", 1, 2, "red") #motif_seq, gene, start, length, color
                 value.draw_motif(20+m.span()[0], 50+i, motif_len)
+                # print(f'f string: {20+m.span()[0]=}')
 
                 #self, x: int, y: int, motif_len: int, color: str
 
         #GCAUG
-        GCAUG = re.compile("GCATG") #bc it's in dna we use "T" instead of "U"
+        GCAUG = re.compile("gcatg") #bc it's in dna we use "T" instead of "U"
         for m in GCAUG.finditer(sequence[0]):
             print(m.span())
             motif_len = m.span()[1] - m.span()[0]
-            print(f'the motiflen --> {motif_len=}')
+            # print(f'the motiflen --> {motif_len=}')
             motif2 = Motif("GCAUG", "gene", 1,2,"blue")
             motif2.draw_motif(20 + m.span()[0], 50+i, motif_len)
 
@@ -347,8 +324,6 @@ with open(args.oneLine, "r") as input_fasta:
             motif4 = Motif("YYYYYYYYYY", "gene", 1,2,"green")
             motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
 
-
-        ### create legend ###
 
         i += 100
         print(f'i={i}')
