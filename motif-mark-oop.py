@@ -36,6 +36,26 @@ f = args.fasta
 
 motifDict = dict()
 
+motifRegDict = dict()
+motifRegDict = {
+    "A": "[aA]",
+    "T": "[tT]",
+    "G": "[gG]",
+    "C": "[cC]",
+    "U": "[tuTU]",
+    "W": "[atAT]",
+    "S": "[cgCG]",
+    "M": "[acAC]",
+    "K": "[gtGT]",
+    "R": "[agAG]",
+    "Y": "[ctCT]",
+    "B": "[cgtCGT]",
+    "D": "[agtAGT]",
+    "H": "[actACT]",
+    "V": "[acgACG]",
+    "N": "[acgtACGT]"
+}
+
 #image dimensions:
 width, height = 1000, 1000
 #setting up pycairo image dimensions:
@@ -50,6 +70,7 @@ color_counter = 0
 ## Functions ##
 ###############
 
+#turn fasta into only a one line fasta:
 def oneline_fasta(f):
     '''Turn seq of fasta file into one line.'''
     with open(f, "r") as rf, open(args.write,"w") as wf:
@@ -67,7 +88,13 @@ def oneline_fasta(f):
                 seq += line 
         wf.write(seq)
 
-# oneline_fasta(f)
+#Add motifs to a dictionary
+def convert_motif(string):
+    string = string.upper()
+    motif = ""
+    for x in string:
+        motif += motifRegDict[x]
+    return(motif)
 
 
 #############
@@ -130,34 +157,37 @@ class Motif:
     #methods:
     def draw_motif(self, x: int, y: int, motif_len: int):
         '''draw the motif'''
-        if self.motif_seq == "ygcy":
-            # print("graphing ygcy")
-            context.set_source_rgba(200/255, 0, 0, .7) # setting color of the context(red rn)
-            #add name into legend
-            context.move_to(20, 450) 
-            context.show_text("ygcy")
-            context.stroke()
-        if self.motif_seq == "YYYYYYYYYY":
-            # print("graphing YYYYYYYYYY")
-            context.set_source_rgba(0, 0, 200/255, .7) # red
-            #add name into legend
-            context.move_to(20, 465) 
-            context.show_text("YYYYYYYYYY")
-            context.stroke()
-        if self.motif_seq == "GCAUG":
-            print("graphing GCAUG")
-            context.set_source_rgba(0, 200/255, 5/255, .7)
-            #add name into legend
-            context.move_to(20, 480) 
-            context.show_text("GCAUG")
-            context.stroke()
-        if self.motif_seq == "catag":
+        # if self.motif_seq == "ygcy":
+        #     # print("graphing ygcy")
+        #     context.set_source_rgba(200/255, 0, 0, .7) # setting color of the context(red rn)
+        #     #add name into legend
+        #     context.move_to(20, 450) 
+        #     context.show_text("ygcy")
+        #     context.stroke()
+        # if self.motif_seq == "YYYYYYYYYY":
+        #     # print("graphing YYYYYYYYYY")
+        #     context.set_source_rgba(0, 0, 200/255, .7) # red
+        #     #add name into legend
+        #     context.move_to(20, 465) 
+        #     context.show_text("YYYYYYYYYY")
+        #     context.stroke()
+        # if self.motif_seq == "GCAUG":
+        #     print("graphing GCAUG")
+        #     context.set_source_rgba(0, 200/255, 5/255, .7)
+        #     #add name into legend
+        #     context.move_to(20, 480) 
+        #     context.show_text("GCAUG")
+        #     context.stroke()
+        if self.motif_seq == motif:
             # print("graphing catag")
             context.set_source_rgba(150/255, 150/255, 0, .7) #orange
             #add name into legend
             context.move_to(20, 495) 
-            context.show_text("catag")
+            context.show_text(f"{motif}")
             context.stroke()
+
+        context.set_source_rgba(colorTuple)
+        
         context.set_line_width(17)
         context.move_to(x,y)        #(x,y)
         context.line_to(x + motif_len, y)
@@ -221,9 +251,9 @@ with open(args.motifs, "r") as input_motifs:
 
 
 
-        motifDict[line] = (len(line),len(line),0,1)
+        motifDict[line] = ((len(line)*20/255),(len(line)*5)/255,0,.5)
 
-    print(motifDict)
+    print(motifDict.values())
         
 
 
@@ -279,50 +309,61 @@ with open(args.oneLine, "r") as input_fasta:
         # x: int, y: int, exon_len: int
         exon1.draw_exon(20+exon_x, 50+i, exon_len)
 
-
+        ###motif TRIAL ###
+        for motif in motifDict:
+            print(f'~~~~~~{motif}')
+            print(motifDict[motif])
+            colorTuple = motifDict[motif]
+            motif = re.compile(convert_motif(f"{motif}"))
+            for m in motif.finditer(sequence[0]):
+                print(m.span())
+                motif_len = m.span()[1] - m.span()[0]
+                motif4 = Motif(f"{motif}", "gene", 1,2,"green")
+                motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
         
 
         ### motifs ###
         # ygcy
-        ygcy = re.compile("([c|t]gc[c|t])")
-        for m in ygcy.finditer(sequence[0]):
-            #print(m.span())
+        # ygcy = re.compile(convert_motif("ygcy"))
+        # print(f'convert motif {ygcy=}')
+        # for m in ygcy.finditer(sequence[0]):
+        #     #print(m.span())
             
-            for value in m.span():
-                #print(value)
-                motif_len = m.span()[1] - m.span()[0]
-                # print(f'the motiflen --> {motif_len=}')
-                value = Motif("ygcy", "gene", 1, 2, "red") #motif_seq, gene, start, length, color
-                value.draw_motif(20+m.span()[0], 50+i, motif_len)
-                # print(f'f string: {20+m.span()[0]=}')
+        #     for value in m.span():
+        #         #print(value)
+        #         motif_len = m.span()[1] - m.span()[0]
+        #         # print(f'the motiflen --> {motif_len=}')
+        #         value = Motif("ygcy", "gene", 1, 2, "red") #motif_seq, gene, start, length, color
+        #         value.draw_motif(20+m.span()[0], 50+i, motif_len)
+        #         # print(f'f string: {20+m.span()[0]=}')
 
-                #self, x: int, y: int, motif_len: int, color: str
+        #         #self, x: int, y: int, motif_len: int, color: str
 
-        #GCAUG
-        GCAUG = re.compile("gcatg") #bc it's in dna we use "T" instead of "U"
-        for m in GCAUG.finditer(sequence[0]):
-            print(m.span())
-            motif_len = m.span()[1] - m.span()[0]
-            # print(f'the motiflen --> {motif_len=}')
-            motif2 = Motif("GCAUG", "gene", 1,2,"blue")
-            motif2.draw_motif(20 + m.span()[0], 50+i, motif_len)
+        # #GCAUG
+        # GCAUG = re.compile(convert_motif("GCAUG")) #bc it's in dna we use "T" instead of "U"
+        # for m in GCAUG.finditer(sequence[0]):
+        #     print(m.span())
+        #     motif_len = m.span()[1] - m.span()[0]
+        #     # print(f'the motiflen --> {motif_len=}')
+        #     motif2 = Motif("GCAUG", "gene", 1,2,"blue")
+        #     motif2.draw_motif(20 + m.span()[0], 50+i, motif_len)
 
-        # #catag
-        catag = re.compile("catag")
-        for m in catag.finditer(sequence[0]):
-            print(m.span())
-            motif_len = m.span()[1] - m.span()[0]
-            motif3 = Motif("catag", "gene", 1,2,"orange")
-            motif3.draw_motif(20 + m.span()[0], 50+i, motif_len)
+        # # #catag
+        # catag = re.compile(convert_motif("catag"))
+        # for m in catag.finditer(sequence[0]):
+        #     print(m.span())
+        #     motif_len = m.span()[1] - m.span()[0]
+        #     motif3 = Motif("catag", "gene", 1,2,"orange")
+        #     motif3.draw_motif(20 + m.span()[0], 50+i, motif_len)
         
 
-        #YYYYYYYYYY
-        YYYYYYYYYY = re.compile("[c|t][c|t][c|t][c|t][c|t][c|t][c|t][c|t][c|t][c|t]")
-        for m in YYYYYYYYYY.finditer(sequence[0]):
-            print(m.span())
-            motif_len = m.span()[1] - m.span()[0]
-            motif4 = Motif("YYYYYYYYYY", "gene", 1,2,"green")
-            motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
+        # #YYYYYYYYYY
+        # YYYYYYYYYY = re.compile(convert_motif("YYYYYYYYYY"))
+        # for m in YYYYYYYYYY.finditer(sequence[0]):
+        #     print(m.span())
+        #     motif_len = m.span()[1] - m.span()[0]
+        #     motif4 = Motif("YYYYYYYYYY", "gene", 1,2,"green")
+        #     motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
 
 
         i += 100
