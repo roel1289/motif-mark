@@ -125,7 +125,7 @@ class Gene:
 
 ########## class exon ################
 class Exon:
-    def __init__(self, start, end, color, gene) -> str:
+    def __init__(self, start: int, end: int, color: str, gene: str) -> str:
         self.start = start
         self.end = end
         self.color = color
@@ -144,7 +144,7 @@ class Exon:
 ############### class motif ##############
 
 class Motif: 
-    def __init__(self, motif_seq, gene, start, length, color) -> str:
+    def __init__(self, motif_seq: str, gene: str, start: int, length: int, color: str) -> str:
     #attributes:
         self.motif_seq = motif_seq
         self.gene = gene
@@ -158,35 +158,8 @@ class Motif:
     #methods:
     def draw_motif(self, x: int, y: int, motif_len: int):
         '''draw the motif'''
-        # if self.motif_seq == "ygcy":
-        #     # print("graphing ygcy")
-        #     context.set_source_rgba(200/255, 0, 0, .7) # setting color of the context(red rn)
-        #     #add name into legend
-        #     context.move_to(20, 450) 
-        #     context.show_text("ygcy")
-        #     context.stroke()
-        # if self.motif_seq == "YYYYYYYYYY":
-        #     # print("graphing YYYYYYYYYY")
-        #     context.set_source_rgba(0, 0, 200/255, .7) # red
-        #     #add name into legend
-        #     context.move_to(20, 465) 
-        #     context.show_text("YYYYYYYYYY")
-        #     context.stroke()
-        # if self.motif_seq == "GCAUG":
-        #     print("graphing GCAUG")
-        #     context.set_source_rgba(0, 200/255, 5/255, .7)
-        #     #add name into legend
-        #     context.move_to(20, 480) 
-        #     context.show_text("GCAUG")
-        #     context.stroke()
-        # if self.motif_seq == motif:
-        #     # print("graphing catag")
-        #     context.set_source_rgba(150/255, 150/255, 0, .7) #orange
-            # #add name into legend
-            # context.move_to(20, 495) 
-            # context.show_text(f"{motif}")
-            # context.stroke()
-
+    
+        # graphing motif:
         context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2])
         
         context.set_line_width(17)
@@ -201,38 +174,15 @@ class Motif:
         context.stroke()
 
         #add name into legend
-        context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2])
+        context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2], .8)
         context.move_to(20, 445 + (z)) 
         context.show_text(f"{motif}")
+        #making box for line
+        context.set_line_width(17)
+        context.move_to(len(motif)+100, 445 + (z))        #(x,y)
+        context.line_to((100+len(motif))+len(motif), 445 + (z))
         context.stroke()
-
-
-
-    # def draw_legend(self, x: int, y: int):
-    #     '''Draw the motif legend, including the colors'''
-    #     if self.motif_seq == "ygcy":
-    #         # print("graphing ygcy")
-    #         context.set_source_rgba(200/255, 0, 0, 0.5) # setting color of the context(red rn)
-    #         #add name into legend
-    #         context.move_to(20, 450) 
-    #         context.show_text("ygcy")
-    #         context.stroke()
-
-
-
-
-
-#m1 = Motif("INSR", 100, 10, "red" )
-#print(m1)
-
-
-
-# motif_ygcy = Motif("ygcy")
-# motif_GCAUG = Motif("GCAUG")
-# motif_catag = Motif("catag")
-# motif_YYYYYYYYYY = Motif("YYYYYYYYYY")
-
-
+        context.stroke()
 
 
 ##########
@@ -287,14 +237,14 @@ with open(args.oneLine, "r") as input_fasta:
 
         # print(header)
         #print(header[0])
-        print(sequence)
+        #print(sequence)
 
         gene_name = header[0][1:]
-        print(f'-------------->{gene_name=}')
+        print(f'--------------{gene_name=}----------------------')
 
         gene_len = len(sequence[0])
-        gene2 = Gene(header[0][1:], gene_len)
-        gene2.draw_gene(20, 50+i, header[0][1:], gene_len)
+        gene = Gene(header[0][1:], gene_len)
+        gene.draw_gene(20, 50+i, header[0][1:], gene_len)
         
         print(f'{gene_len=}')
 
@@ -307,8 +257,8 @@ with open(args.oneLine, "r") as input_fasta:
             exon_x = m.span()[0]
             exon_y = m.span()[1]
         
-        print(exon_x)
-        print(exon_y)
+        # print(exon_x)
+        # print(exon_y)
 
 
         exon_len = exon_y - exon_x #exon len = end - start
@@ -320,64 +270,21 @@ with open(args.oneLine, "r") as input_fasta:
         # x: int, y: int, exon_len: int
         exon1.draw_exon(20+exon_x, 50+i, exon_len)
 
-        ###motif TRIAL ###
+        ### Motifs ###
         z = 0
         for motif in motifDict:
-            print(f'~~~~~~{motif}')
-            print(motifDict[motif])
+            print(f'{motif=}')
+            print(f'RGBA = {motifDict[motif]}')
             colorTuple = motifDict[motif]
             motif_re = re.compile(convert_motif(f"{motif}"))
-            z += 15
+            z += 19
             for m in motif_re.finditer(sequence[0]):
-                print(m.span())
+                #print(m.span())
                 motif_len = m.span()[1] - m.span()[0]
                 motif4 = Motif(f"{motif}", "gene", 1,2,"green")
                 motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
-                print(f'wananannanana {motif=}')
-        
-
-        ### motifs ###
-        # ygcy
-        # ygcy = re.compile(convert_motif("ygcy"))
-        # print(f'convert motif {ygcy=}')
-        # for m in ygcy.finditer(sequence[0]):
-        #     #print(m.span())
             
-        #     for value in m.span():
-        #         #print(value)
-        #         motif_len = m.span()[1] - m.span()[0]
-        #         # print(f'the motiflen --> {motif_len=}')
-        #         value = Motif("ygcy", "gene", 1, 2, "red") #motif_seq, gene, start, length, color
-        #         value.draw_motif(20+m.span()[0], 50+i, motif_len)
-        #         # print(f'f string: {20+m.span()[0]=}')
-
-        #         #self, x: int, y: int, motif_len: int, color: str
-
-        # #GCAUG
-        # GCAUG = re.compile(convert_motif("GCAUG")) #bc it's in dna we use "T" instead of "U"
-        # for m in GCAUG.finditer(sequence[0]):
-        #     print(m.span())
-        #     motif_len = m.span()[1] - m.span()[0]
-        #     # print(f'the motiflen --> {motif_len=}')
-        #     motif2 = Motif("GCAUG", "gene", 1,2,"blue")
-        #     motif2.draw_motif(20 + m.span()[0], 50+i, motif_len)
-
-        # # #catag
-        # catag = re.compile(convert_motif("catag"))
-        # for m in catag.finditer(sequence[0]):
-        #     print(m.span())
-        #     motif_len = m.span()[1] - m.span()[0]
-        #     motif3 = Motif("catag", "gene", 1,2,"orange")
-        #     motif3.draw_motif(20 + m.span()[0], 50+i, motif_len)
         
-
-        # #YYYYYYYYYY
-        # YYYYYYYYYY = re.compile(convert_motif("YYYYYYYYYY"))
-        # for m in YYYYYYYYYY.finditer(sequence[0]):
-        #     print(m.span())
-        #     motif_len = m.span()[1] - m.span()[0]
-        #     motif4 = Motif("YYYYYYYYYY", "gene", 1,2,"green")
-        #     motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
 
 
         i += 100
@@ -389,17 +296,11 @@ context.fill()
 surface.finish()
 
 
-#####making motif dictionary where key = motif, and value and color
-#ygcy = yellow
-#GCAUG = green
-#catag = red
-#YYYYYYYYYY = white
 
-# Note: Y = T/C
 
 
 motifDict = dict()
 
 
 
-# ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt -w test.fa -ol test.fa
+# ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt -w oneline.fa -ol oneline.fa
