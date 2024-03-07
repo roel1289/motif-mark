@@ -110,6 +110,7 @@ class Gene:
 
     #methods
     def draw_gene(self, x: int, y: int, name: str, gene_length: int):
+        '''This behavior draws the gene as a black line. The line will be proportionally as long as the gene.'''
         context.set_line_width(3)
         print(f'debug 123 {x=}, {y=}, {x+gene_length=}')
         context.set_source_rgba(0, 0, 0, 1)
@@ -178,15 +179,15 @@ class Motif:
         #     context.move_to(20, 480) 
         #     context.show_text("GCAUG")
         #     context.stroke()
-        if self.motif_seq == motif:
-            # print("graphing catag")
-            context.set_source_rgba(150/255, 150/255, 0, .7) #orange
-            #add name into legend
-            context.move_to(20, 495) 
-            context.show_text(f"{motif}")
-            context.stroke()
+        # if self.motif_seq == motif:
+        #     # print("graphing catag")
+        #     context.set_source_rgba(150/255, 150/255, 0, .7) #orange
+            # #add name into legend
+            # context.move_to(20, 495) 
+            # context.show_text(f"{motif}")
+            # context.stroke()
 
-        context.set_source_rgba(colorTuple)
+        context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2])
         
         context.set_line_width(17)
         context.move_to(x,y)        #(x,y)
@@ -197,6 +198,12 @@ class Motif:
         context.set_source_rgba(0, 0, 0, 1)
         context.move_to(20, 435) 
         context.show_text("Key")
+        context.stroke()
+
+        #add name into legend
+        context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2])
+        context.move_to(20, 445 + (z)) 
+        context.show_text(f"{motif}")
         context.stroke()
 
 
@@ -241,17 +248,21 @@ def build_genes(oneline_fasta_filename: str) -> list[Gene]:
 
 #getting the motifs:
 with open(args.motifs, "r") as input_motifs:
+    dictCounter = 0
     while True:
         line = input_motifs.readline().strip()
         if(line == ""):
             break
-        print(f'--->motifs:{line}')
+        dictCounter += 1
+        print(f'--->motifs:{dictCounter=}')
         # match_gene_name = re.findall(r'>([A-Za-z0-9]+)', line)
         # match_motif = re.search(r'(([c|t]gc[c|t])', line)
 
 
 
-        motifDict[line] = ((len(line)*20/255),(len(line)*5)/255,0,.5)
+        # motifDict[line] = ((len(line)*20/255),(len(line)*25)/255,40/255,.5)
+        # motifDict[line] = (((len(line)/2)**5)/255,(((len(line)/2)**3)/255),((len(line)/2)**5)/255,.5)
+        motifDict[line] = ((dictCounter*100)/255, (dictCounter*60)/255, (dictCounter*40)/255)
 
     print(motifDict.values())
         
@@ -310,16 +321,19 @@ with open(args.oneLine, "r") as input_fasta:
         exon1.draw_exon(20+exon_x, 50+i, exon_len)
 
         ###motif TRIAL ###
+        z = 0
         for motif in motifDict:
             print(f'~~~~~~{motif}')
             print(motifDict[motif])
             colorTuple = motifDict[motif]
-            motif = re.compile(convert_motif(f"{motif}"))
-            for m in motif.finditer(sequence[0]):
+            motif_re = re.compile(convert_motif(f"{motif}"))
+            z += 15
+            for m in motif_re.finditer(sequence[0]):
                 print(m.span())
                 motif_len = m.span()[1] - m.span()[0]
                 motif4 = Motif(f"{motif}", "gene", 1,2,"green")
                 motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
+                print(f'wananannanana {motif=}')
         
 
         ### motifs ###
