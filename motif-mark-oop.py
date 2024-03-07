@@ -23,8 +23,6 @@ def get_args():
     parser = argparse.ArgumentParser(description="A program to hold input + output file name")
     parser.add_argument("-f", "--fasta", help="designates absolute file path to fasta file", type = str)
     parser.add_argument("-m", "--motifs", help="designates absolute file motifs file", type = str)
-    # parser.add_argument("-w", "--write", help="write", type = str)
-    # parser.add_argument("-ol", "--oneLine", help="One line fasta file", type = str)
     return parser.parse_args()
     
 args = get_args()
@@ -63,6 +61,7 @@ width, height = 1000, 1000
 #setting up pycairo image dimensions:
 surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
 context = cairo.Context(surface)
+context.set_source_rgba(1, 1, 1, 1)
 
 context.paint()
 
@@ -77,7 +76,7 @@ context.paint()
 #turn fasta into only a one line fasta:
 def oneline_fasta(f):
     '''Turn seq of fasta file into one line.'''
-    with open(f, "r") as rf, open(f'{f}_oneline',"w") as wf:
+    with open(f, "rt") as rf, open(f'{f}_oneline',"w") as wf:
         seq = ''
         while True:
             line = rf.readline().strip()
