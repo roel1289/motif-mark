@@ -23,8 +23,8 @@ def get_args():
     parser = argparse.ArgumentParser(description="A program to hold input + output file name")
     parser.add_argument("-f", "--fasta", help="designates absolute file path to fasta file", type = str)
     parser.add_argument("-m", "--motifs", help="designates absolute file motifs file", type = str)
-    parser.add_argument("-w", "--write", help="write", type = str)
-    parser.add_argument("-ol", "--oneLine", help="One line fasta file", type = str)
+    # parser.add_argument("-w", "--write", help="write", type = str)
+    # parser.add_argument("-ol", "--oneLine", help="One line fasta file", type = str)
     return parser.parse_args()
     
 args = get_args()
@@ -34,8 +34,10 @@ f = args.fasta
 ## Globals ##
 #############
 
+#dict to contain motifs
 motifDict = dict()
 
+#dict to contain motif regex
 motifRegDict = dict()
 motifRegDict = {
     "A": "[aA]",
@@ -59,11 +61,13 @@ motifRegDict = {
 #image dimensions:
 width, height = 1000, 1000
 #setting up pycairo image dimensions:
-surface = cairo.PDFSurface("Figure_1.pdf", width, height)
+surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
 context = cairo.Context(surface)
 
-#counter to increment the different RGBA colors: 
-color_counter = 0
+context.paint()
+
+# #counter to increment the different RGBA colors: 
+# color_counter = 0
 
 
 ###############
@@ -73,7 +77,7 @@ color_counter = 0
 #turn fasta into only a one line fasta:
 def oneline_fasta(f):
     '''Turn seq of fasta file into one line.'''
-    with open(f, "r") as rf, open(args.write,"w") as wf:
+    with open(f, "r") as rf, open(f'{f}_oneline',"w") as wf:
         seq = ''
         while True:
             line = rf.readline().strip()
@@ -87,9 +91,11 @@ def oneline_fasta(f):
             else:
                 seq += line 
         wf.write(seq)
+        
 
 #Add motifs to a dictionary
 def convert_motif(string):
+    '''convert DNA string (motif) into a set of characters, and add it to a regex motif dictionary.'''
     string = string.upper()
     motif = ""
     for x in string:
@@ -159,7 +165,7 @@ class Motif:
     def draw_motif(self, x: int, y: int, motif_len: int):
         '''draw the motif'''
     
-        # graphing motif:
+        ### graphing motif ###
         context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2])
         
         context.set_line_width(17)
@@ -167,21 +173,22 @@ class Motif:
         context.line_to(x + motif_len, y)
         context.stroke()
 
-        #making key
+        #### making key ####
+    
         context.set_source_rgba(0, 0, 0, 1)
-        context.move_to(20, 435) 
-        context.show_text("Key")
+        context.move_to(20, 900) 
+        context.show_text("Legend")
         context.stroke()
 
+    
         #add name into legend
         context.set_source_rgba(colorTuple[0], colorTuple[1], colorTuple[2], .8)
-        context.move_to(20, 445 + (z)) 
+        context.move_to(20, 900 + (z)) 
         context.show_text(f"{motif}")
         #making box for line
         context.set_line_width(17)
-        context.move_to(len(motif)+100, 445 + (z))        #(x,y)
-        context.line_to((100+len(motif))+len(motif), 445 + (z))
-        context.stroke()
+        context.move_to(len(motif)+100, 900 + (z))        #(x,y)
+        context.line_to((100+len(motif))+len(motif), 900 + (z))
         context.stroke()
 
 
@@ -223,7 +230,7 @@ with open(args.motifs, "r") as input_motifs:
 # Turning fasta file so that it only has one line of
 oneline_fasta(f)
 
-with open(args.oneLine, "r") as input_fasta:
+with open(f'{f}_oneline', "r") as input_fasta:
     ### genes ###
     i=0
     exon_counter = 0
@@ -283,24 +290,14 @@ with open(args.oneLine, "r") as input_fasta:
                 motif_len = m.span()[1] - m.span()[0]
                 motif4 = Motif(f"{motif}", "gene", 1,2,"green")
                 motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
-            
-        
-
 
         i += 100
         print(f'i={i}')
 
+#context.fill()
+#surface.finish()
 
-
-context.fill()
-surface.finish()
-
-
-
-
-
-motifDict = dict()
-
+surface.write_to_png(f'{f}.png') 
 
 
 # ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt -w oneline.fa -ol oneline.fa
