@@ -57,17 +57,13 @@ motifRegDict = {
 }
 
 #image dimensions:
-width, height = 1000, 1000
+width, height = 1100, 1000
 #setting up pycairo image dimensions:
 surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
 context = cairo.Context(surface)
 context.set_source_rgba(1, 1, 1, 1)
 
 context.paint()
-
-# #counter to increment the different RGBA colors: 
-# color_counter = 0
-
 
 ###############
 ## Functions ##
@@ -198,10 +194,6 @@ class Motif:
 # directly or indirectly everything above it).
     
 
-#maybe will make a function that takes a oneline fasta and gives a list of genes:
-def build_genes(oneline_fasta_filename: str) -> list[Gene]:
-    pass 
-
 #getting the motifs:
 with open(args.motifs, "r") as input_motifs:
     dictCounter = 0
@@ -211,13 +203,8 @@ with open(args.motifs, "r") as input_motifs:
             break
         dictCounter += 1
         print(f'--->motifs:{dictCounter=}')
-        # match_gene_name = re.findall(r'>([A-Za-z0-9]+)', line)
-        # match_motif = re.search(r'(([c|t]gc[c|t])', line)
-
-
-
-        # motifDict[line] = ((len(line)*20/255),(len(line)*25)/255,40/255,.5)
-        # motifDict[line] = (((len(line)/2)**5)/255,(((len(line)/2)**3)/255),((len(line)/2)**5)/255,.5)
+        
+        #generate the most distinct rgba colors using the counter(played around with different numbers):
         motifDict[line] = ((dictCounter*100)/255, (dictCounter*60)/255, (dictCounter*40)/255)
 
     print(motifDict.values())
@@ -241,16 +228,12 @@ with open(f'{f}_oneline', "r") as input_fasta:
         if(header == []):
             break
 
-        # print(header)
-        #print(header[0])
-        #print(sequence)
-
         gene_name = header[0][1:]
         print(f'--------------{gene_name=}----------------------')
 
         gene_len = len(sequence[0])
-        gene = Gene(header[0][1:], gene_len)
-        gene.draw_gene(20, 50+i, header[0][1:], gene_len)
+        gene_obj = Gene(header[0][1:], gene_len)
+        gene_obj.draw_gene(20, 50+i, header[0][1:], gene_len)
         
         print(f'{gene_len=}')
 
@@ -263,18 +246,14 @@ with open(f'{f}_oneline', "r") as input_fasta:
             exon_x = m.span()[0]
             exon_y = m.span()[1]
         
-        # print(exon_x)
-        # print(exon_y)
-
-
         exon_len = exon_y - exon_x #exon len = end - start
         print(f'{exon_len=}')
         
 
 
-        exon1 = Exon(0, exon_len, "red", gene_name)
+        exon_obj = Exon(20+exon_x, exon_len, "color", gene_name)
         # x: int, y: int, exon_len: int
-        exon1.draw_exon(20+exon_x, 50+i, exon_len)
+        exon_obj.draw_exon(20+exon_x, 50+i, exon_len)
 
         ### Motifs ###
         z = 0
@@ -287,16 +266,14 @@ with open(f'{f}_oneline', "r") as input_fasta:
             for m in motif_re.finditer(sequence[0]):
                 #print(m.span())
                 motif_len = m.span()[1] - m.span()[0]
-                motif4 = Motif(f"{motif}", "gene", 1,2,"green")
-                motif4.draw_motif(20 + m.span()[0], 50+i, motif_len)
-
-        i += 100
-        print(f'i={i}')
-
-#context.fill()
-#surface.finish()
-
-surface.write_to_png(f'{f}.png') 
+                motif_obj = Motif(f"{motif}", gene_name, 1,2,"color")
+                motif_obj.draw_motif(20 + m.span()[0], 50+i, motif_len)
+        #add 80 each time the script goes through a new gene. This is so that I can graph each gene 80 pixels apart. #
+        i += 80
+        print(f'y position counter: {i=}')
 
 
-# ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt -w oneline.fa -ol oneline.fa
+#output the file as .png. Note: I do f[:-6] to remove ".fasta" from filename
+surface.write_to_png(f'{f[:-6]}.png') 
+
+# ./motif-mark-oop.py -f Figure_1.fasta -m Fig_1_motifs.txt
