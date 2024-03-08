@@ -12,8 +12,8 @@ conda activate bgmp-pycairo
 conda install -c conda-forge pycairo
 ```  
 To run the script, there are two options.  
-    * `-f`: designated fasta file
-    * `-m`: designated file containing the motifs  
+* `-f`: designated fasta file  
+* `-m`: designated file containing the motifs  
 
 Here is how to run the script from the commandline:   
 ```./motif-mark-oop.py -f <fasta file> -m <motif file>```
